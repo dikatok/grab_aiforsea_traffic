@@ -12,7 +12,6 @@ class Encoder(tf.keras.Model):
                                        recurrent_initializer='glorot_uniform')
 
     def call(self, enc_in, hidden):
-        enc_in = tf.cast(enc_in, dtype=tf.float32)
         output, state = self.gru(enc_in, initial_state=hidden)
         return output, state
 
@@ -71,6 +70,8 @@ class Model:
         loss = 0
 
         with tf.GradientTape() as tape:
+            inputs = tf.cast(inputs, dtype=tf.float32)
+
             inputs = self.dense(inputs)
 
             enc_output, enc_hidden = self.encoder(inputs, enc_hidden)
@@ -98,19 +99,18 @@ class Model:
 
         summary_writer = tf.summary.create_file_writer("../logs")
 
-        for (batch, (inputs, outputs)) in enumerate(dataset):
+        for (iteration, (inputs, outputs)) in enumerate(dataset):
+            start_iter = time.time()
             batch_loss = self.train_step(inputs, outputs, enc_hidden)
             total_loss += batch_loss
 
-            if batch % 10 == 0:
-                print('Iter {} Batch {} Loss {}'.format(iteration + 1,
-                                                            batch,
-                                                            batch_loss.numpy()))
+            with summary_writer.as_default():
+                tf.summary.scalar('loss', batch_loss, step=iteration)
 
-                with summary_writer.as_default():
-                    tf.summary.scalar('loss', batch_loss, step=iteration)
+            if iteration % 100 == 0:
+                print('Iter {} Loss {} Time {}'.format(iteration + 1, batch_loss.numpy(), time.time() - start_iter))
 
-        self.checkpoint.save(file_prefix=self.checkpoint_prefix)
+                self.checkpoint.save(file_prefix=self.checkpoint_prefix)
 
         print('Iter {} Loss {}'.format(iteration + 1, total_loss / iteration))
         print('Time taken {} sec\n'.format(time.time() - start))

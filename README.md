@@ -1,6 +1,7 @@
 # AI for SEA (Traffic Management)
 
 ##How To
+
 ### Environment
 
 `conda env create -f environment.yml`
@@ -21,6 +22,7 @@
 3. Improve data generator to remove data to model bottleneck
 4. Use independent autoencoder + forecaster model
 5. Use cross features (eg: recur_day x time_bin)
+6. Use feature embeddings
 
 ## References
 https://www.kaggle.com/c/web-traffic-time-series-forecasting/discussion/43795#latest-528073

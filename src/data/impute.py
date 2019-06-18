@@ -2,7 +2,11 @@ import pandas as pd
 
 
 def impute_data(df, lat_long_map):
-    all_time_points_df = pd.DataFrame({"day": [d for d in range(1, 62)]})\
+    max_day = df.day.max()
+    max_day_hour = df[df.day == max_day].hour.max()
+    max_day_minute = df[(df.day == max_day) & (df.hour == max_day_hour)].minute.max()
+
+    all_time_points_df = pd.DataFrame({"day": [d for d in range(1, max_day + 1)]})\
         .assign(key=1)\
         .merge(pd.DataFrame({"hour": [h for h in range(0, 24)]})
                .assign(key=1)
@@ -20,5 +24,9 @@ def impute_data(df, lat_long_map):
                  .index)\
         .fillna(0)\
         .reset_index()
+
+    df = df[(df.day < max_day)
+            | ((df.day == max_day) & (df.hour < max_day_hour))
+            | ((df.day == max_day) & (df.hour == max_day_hour) & (df.minute <= max_day_minute))]
 
     return df

@@ -12,7 +12,7 @@ __pycache__/
 .ipynb_checkpoints/
 
 # exclude interim data
-data/
+./data/
 
 # Mac OS-specific storage files
 .DS_Store
@@ -20,6 +20,3 @@ data/
 # vim
 *.swp
 *.swo
-
-# logs
-logs/

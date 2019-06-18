@@ -5,7 +5,7 @@ from .decode import decode_geohash, decode_timestamp
 from .impute import impute_data
 
 
-def prepare_data(df):
+def prepare_data(df, impute=False):
     lat_long_map = {g: decode_exactly(g)[:2] for g in df.geohash6.unique()}
 
     df = decode_geohash(df, lat_long_map)
@@ -16,6 +16,7 @@ def prepare_data(df):
 
     df = df.drop("timestamp", axis=1)
 
-    df = impute_data(df, lat_long_map)
+    if impute:
+        df = impute_data(df, lat_long_map)
 
     return df

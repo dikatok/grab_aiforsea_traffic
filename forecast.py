@@ -68,6 +68,5 @@ if __name__ == '__main__':
                                               day=int(last_result[0]),
                                               timestamp=f"{int(last_result[1])}:{int(last_result[2])}"),
                                          ignore_index=True)
-        break
 
     result_df.to_csv(out_path, index=False)

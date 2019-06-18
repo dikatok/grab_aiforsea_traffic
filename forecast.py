@@ -47,7 +47,7 @@ if __name__ == '__main__':
     model = Model()
     model.checkpoint.restore(tf.train.latest_checkpoint(models_path)).expect_partial()
 
-    test_df = pd.read_csv(csv_path).iloc[:100000]
+    test_df = pd.read_csv(csv_path)
     test_df = prepare_data(test_df, impute=True)
     test_df = test_df[["geohash6", "lat", "long", "day", "hour", "minute", "demand"]]
     test_df = create_features(test_df)

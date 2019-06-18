@@ -1,21 +1,26 @@
 # AI for SEA (Traffic Management)
 
-[Status] Still in progress, got sudden Cuda related problems
-
-## How to Test
-Create new conda environment and activate it
+##How To
+### Environment
 
 `conda env create -f environment.yml`
 
 `conda activate test`
 
-Download the model checkpoint
+### View logs
 
-`git lfs pull`
+`tensorboard --logdir logs`
 
-Perform forecasting
+### Perform forecasting
 
-`python forecast.py --csv test.csv`
+`python forecast.py --csv test.csv --out out.csv`
+
+## Future recommendations
+1. Use sigmoid activation on the output
+2. Use validation set, eg: 1 day after every train set
+3. Improve data generator to remove data to model bottleneck
+4. Use independent autoencoder + forecaster model
+5. Use cross features (eg: recur_day x time_bin)
 
 ## References
 https://www.kaggle.com/c/web-traffic-time-series-forecasting/discussion/43795#latest-528073

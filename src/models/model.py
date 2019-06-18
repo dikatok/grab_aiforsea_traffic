@@ -11,8 +11,8 @@ class Encoder(tf.keras.Model):
                                        return_state=True,
                                        recurrent_initializer='glorot_uniform')
 
-    def call(self, enc_in, hidden):
-        output, state = self.gru(enc_in, initial_state=hidden)
+    def call(self, enc_in):
+        output, state = self.gru(enc_in)
         return output, state
 
 
@@ -43,8 +43,8 @@ class Decoder(tf.keras.Model):
         self.fc2 = tf.keras.layers.Dense(1)
         self.attention = BahdanauAttention(units)
 
-    def call(self, enc_out, hidden):
-        context_vector, attention_weights = self.attention(hidden, enc_out)
+    def call(self, enc_out, enc_hidden):
+        context_vector, attention_weights = self.attention(enc_hidden, enc_out)
         context_vector = tf.tile(tf.expand_dims(context_vector, 1), multiples=[1, enc_out.shape[1], 1])
         dec_in = tf.concat([context_vector, enc_out], axis=-1)
         output, state = self.gru(dec_in)
@@ -53,9 +53,9 @@ class Decoder(tf.keras.Model):
         return output, state, attention_weights
 
 
-class Model:
+class Model(tf.keras.Model):
     def __init__(self):
-        self.dense = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(20))
+        super(Model, self).__init__()
         self.encoder = Encoder()
         self.decoder = Decoder()
         self.optimizer = tf.keras.optimizers.Adam()
@@ -65,18 +65,18 @@ class Model:
                                               encoder=self.encoder,
                                               decoder=self.decoder)
 
+    def call(self, inputs):
+        inputs = tf.cast(inputs, dtype=tf.float32)
+        enc_output, enc_hidden = self.encoder(inputs)
+        predictions, _, _ = self.decoder(enc_output, enc_hidden)
+        return predictions, enc_hidden
+
     @tf.function
-    def train_step(self, inputs, outputs, enc_hidden):
+    def train_step(self, inputs, outputs):
         loss = 0
 
         with tf.GradientTape() as tape:
-            inputs = tf.cast(inputs, dtype=tf.float32)
-
-            inputs = self.dense(inputs)
-
-            enc_output, enc_hidden = self.encoder(inputs, enc_hidden)
-
-            predictions, dec_hidden, _ = self.decoder(enc_output, enc_hidden)
+            predictions, dec_hidden = self.call(inputs)
 
             loss += tf.reduce_mean(tf.losses.mean_squared_error(outputs, predictions))
 
@@ -93,7 +93,6 @@ class Model:
     def train(self, dataset):
         start = time.time()
 
-        enc_hidden = None
         total_loss = 0
         iteration = 0
 
@@ -101,7 +100,7 @@ class Model:
 
         for (iteration, (inputs, outputs)) in enumerate(dataset):
             start_iter = time.time()
-            batch_loss = self.train_step(inputs, outputs, enc_hidden)
+            batch_loss = self.train_step(inputs, outputs)
             total_loss += batch_loss
 
             with summary_writer.as_default():
